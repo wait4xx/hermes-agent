@@ -62,7 +62,15 @@ def generate_title(
             timeout=timeout,
             main_runtime=main_runtime,
         )
-        title = (response.choices[0].message.content or "").strip()
+        choice = response.choices[0]
+        msg = choice.message
+        # Some providers return message as a plain string instead of an object
+        if isinstance(msg, str):
+            title = msg.strip()
+        elif isinstance(msg, dict):
+            title = (msg.get("content") or "").strip()
+        else:
+            title = (getattr(msg, "content", None) or "").strip()
         # Clean up: remove quotes, trailing punctuation, prefixes like "Title: "
         title = title.strip('"\'')
         if title.lower().startswith("title:"):
